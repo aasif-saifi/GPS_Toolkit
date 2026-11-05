@@ -57,11 +57,28 @@ class GpsLocationTracker(private val context: Context) {
         if (isTracking) return
         isTracking = true
 
+        // 1. Immediately inspect last known location from LocationManager providers (works great on emulators & devices)
         try {
-            // Fused Location Provider with high accuracy for speedometer & navigation
+            locationManager?.let { lm ->
+                val gpsLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                val netLoc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                val passLoc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+
+                val bestLastLoc = listOfNotNull(gpsLoc, netLoc, passLoc)
+                    .maxByOrNull { it.time }
+
+                if (bestLastLoc != null) {
+                    processLocation(bestLastLoc)
+                }
+            }
+        } catch (_: Exception) {}
+
+        // 2. Start FusedLocationProviderClient updates with high accuracy and small minimum displacement
+        try {
             val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L)
                 .setMinUpdateIntervalMillis(500L)
                 .setMinUpdateDistanceMeters(0f)
+                .setWaitForAccurateLocation(false)
                 .build()
 
             fusedClient.requestLocationUpdates(locationRequest, fusedCallback, Looper.getMainLooper())
@@ -69,17 +86,17 @@ class GpsLocationTracker(private val context: Context) {
                     startFallbackLocationManager()
                 }
 
-            // Also check last known location immediately
             fusedClient.lastLocation.addOnSuccessListener { loc ->
-                if (loc != null && _locationData.value.timestampMs == 0L) {
+                if (loc != null) {
                     processLocation(loc)
                 }
             }
-        } catch (_: SecurityException) {
-            startFallbackLocationManager()
         } catch (_: Exception) {
             startFallbackLocationManager()
         }
+
+        // 3. Concurrently listen via LocationManager so that standard GPS fixes or emulator simulated GPS immediately trigger updates
+        startFallbackLocationManager()
     }
 
     @SuppressLint("MissingPermission")

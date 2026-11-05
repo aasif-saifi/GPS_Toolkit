@@ -180,11 +180,11 @@ fun GpsToolkitApp(viewModel: GpsToolkitViewModel) {
     val navItems = listOf(
         NavigationItem("Dash", Icons.Default.Dashboard, "Dashboard"),
         NavigationItem("Speed", Icons.Default.Speed, "Speedometer"),
-        NavigationItem("Altitude", Icons.Default.Height, "Altimeter"),
+        NavigationItem("Alt", Icons.Default.Height, "Altimeter"),
         NavigationItem("Compass", Icons.Default.Navigation, "Compass"),
         NavigationItem("Level", Icons.Default.Explore, "Spirit Level"),
         NavigationItem("GPS", Icons.Default.LocationOn, "Coordinates"),
-        NavigationItem("Settings", Icons.Default.Settings, "Settings")
+        NavigationItem("Set", Icons.Default.Settings, "Settings")
     )
 
     if (isWideScreen) {
@@ -258,11 +258,13 @@ fun GpsToolkitApp(viewModel: GpsToolkitViewModel) {
                             label = {
                                 Text(
                                     text = item.shortTitle,
-                                    fontSize = 10.sp,
+                                    fontSize = 9.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    fontFamily = FontFamily.Monospace
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
                             },
+                            alwaysShowLabel = true,
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = InstrumentCyan,
                                 selectedTextColor = InstrumentCyan,

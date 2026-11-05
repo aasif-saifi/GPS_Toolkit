@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -194,15 +195,27 @@ fun CoordinatesScreen(
                     accuracyMeters = locationData.horizontalAccuracyMeters,
                     provider = locationData.provider
                 )
-                Button(
-                    onClick = { showSaveDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = InstrumentCyan),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.height(34.dp).testTag("save_waypoint_button")
-                ) {
-                    Icon(Icons.Default.Bookmark, contentDescription = null, tint = Color(0xFF00363D), modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("SAVE WAYPOINT", color = Color(0xFF00363D), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedButton(
+                        onClick = onRequestPermission,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.height(34.dp).testTag("refresh_gps_button")
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh GPS", tint = InstrumentCyan, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("REFRESH", color = InstrumentCyan, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    }
+
+                    Button(
+                        onClick = { showSaveDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = InstrumentCyan),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.height(34.dp).testTag("save_waypoint_button")
+                    ) {
+                        Icon(Icons.Default.Bookmark, contentDescription = null, tint = Color(0xFF00363D), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("SAVE", color = Color(0xFF00363D), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    }
                 }
             }
         }
@@ -210,6 +223,27 @@ fun CoordinatesScreen(
         if (!hasLocationPermission) {
             item {
                 PermissionRequestBanner(onRequestPermission = onRequestPermission)
+            }
+        } else if (!locationData.isGpsFixed) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF16222E)),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            color = InstrumentCyan,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Acquiring GPS Satellite Signal...", color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("Make sure device Location/GPS is turned ON in system settings.", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+                }
             }
         }
 
